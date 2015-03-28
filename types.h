@@ -2,8 +2,9 @@
 #define MYTYPES_H
 
 struct command_t {
-  int code;
-  int duration;
+  uint8_t code;
+  uint8_t duration;
+  uint8_t speed;
 };
 
 #endif

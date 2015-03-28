@@ -4,10 +4,15 @@
 
 #include "types.h"
 #include "wifi.h"
+#include "motor.h"
 
 // Pins
 #define WIFI_RX 3
 #define WIFI_TX 2
+#define L_MOTOR_SPEED 9 // PWM
+#define L_MOTOR_DIRECTION 8
+#define R_MOTOR_SPEED 11 // PWM
+#define R_MOTOR_DIRECTION 10
 
 // Communication
 #define WIFI_BAUD 57600
@@ -27,19 +32,27 @@
 #define CMD_CLEAR 7
 #define CMD_LIST 8
 
+#define FORWARD HIGH
+#define REVERSE LOW
+
 SoftwareSerial wifiSerial(WIFI_RX, WIFI_TX);
-QueueList <command_t>queue;
 ESP8266 wifi(wifiSerial, WIFI_BAUD);
-bool run = false;
-bool executingCommand = false;
-command_t currentCommand;
+QueueList <command_t>queue;
+Motor leftMotor(L_MOTOR_SPEED, L_MOTOR_DIRECTION);
+Motor rightMotor(R_MOTOR_SPEED, R_MOTOR_DIRECTION);
+
+bool running = false;
+bool runningCommand = false;
+command_t command;
 
 void setupWifi() {
   debug.print("Connecting to WIFI... ");
   if(wifi.setOprToStation() && wifi.joinAP(WIFI_SSID, WIFI_PASSWORD))
     debug.println("Connected");
-  else
+  else {
     debug.println("Failed");
+    return;
+  }
 
   debug.print("Initialising server on " + wifi.getLocalIP() + ":" + SERVER_PORT + "... ");
   if(wifi.enableMUX() && wifi.startTCPServer(SERVER_PORT) && wifi.setTCPServerTimeout(SERVER_TIMEOUT))
@@ -49,33 +62,40 @@ void setupWifi() {
 }
 
 void executeCommand(command_t* command) {
-  executingCommand = true;
+  runningCommand = true;
   switch(command->code) {
     case CMD_FORWARD:
+      leftMotor.run(FORWARD, command->speed);
+      rightMotor.run(FORWARD, command->speed);
       break;
     case CMD_REVERSE:
+      leftMotor.run(REVERSE, command->speed);
+      rightMotor.run(REVERSE, command->speed);
       break;
     case CMD_TURN_L:
+      leftMotor.run(REVERSE, command->speed);
+      rightMotor.run(FORWARD, command->speed);
       break;
     case CMD_TURN_R:
+      leftMotor.run(FORWARD, command->speed);
+      rightMotor.run(REVERSE, command->speed);
       break;
   }
 }
 
 void finishExecutingCommand() {
-  executingCommand = false;
+  runningCommand = false;
 }
 
 void setup()
 {
   debug.begin(57600);
-
   setupWifi();
 }
 
 void loop()
 {
-  if(run && !queue.isEmpty() && !executingCommand)
-    currentCommand = queue.pop();
-    executeCommand(&currentCommand);
+  if(running && !queue.isEmpty() && !runningCommand)
+    command = queue.pop();
+    executeCommand(&command);
 }

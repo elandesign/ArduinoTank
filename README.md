@@ -8,7 +8,7 @@ The build will consist of
 
 * Electronics
   * Arduino Uno
-  * Motor Shield
+  * L9110S Dual Motor Driver Module
   * ESP8266 Wifi <-> Serial Transceiver Module
   * OV7670 Camera Module
 * Mechanics
