@@ -1,5 +1,5 @@
 .DS_Store
-wifi.h
+wifi_settings.h
 .dep
 .lib
 *.hex

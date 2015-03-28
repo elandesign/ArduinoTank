@@ -3,7 +3,7 @@
 #include <ESP8266.h>
 
 #include "types.h"
-#include "wifi.h"
+#include "wifi_settings.h"
 #include "motor.h"
 
 // Pins
