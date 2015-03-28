@@ -1,6 +1,7 @@
 #include <SoftwareSerial.h>
 #include <QueueList.h>
 #include <ESP8266.h>
+#include <Timer.h>
 
 #include "types.h"
 #include "wifi_settings.h"
@@ -27,8 +28,8 @@
 #define CMD_REVERSE 2
 #define CMD_TURN_R 3
 #define CMD_TURN_L 4
-#define CMD_RUN 5
-#define CMD_STOP 6
+#define CMD_STOP 5
+#define CMD_RUN 6
 #define CMD_CLEAR 7
 #define CMD_LIST 8
 
@@ -44,12 +45,15 @@ Motor rightMotor(R_MOTOR_SPEED, R_MOTOR_DIRECTION);
 bool running = false;
 bool runningCommand = false;
 command_t command;
+Timer commandTimer;
 
-void setupWifi() {
+void setupWifi()
+{
   debug.print("Connecting to WIFI... ");
   if(wifi.setOprToStation() && wifi.joinAP(WIFI_SSID, WIFI_PASSWORD))
     debug.println("Connected");
-  else {
+  else
+  {
     debug.println("Failed");
     return;
   }
@@ -61,9 +65,21 @@ void setupWifi() {
     debug.println("Failed");
 }
 
-void executeCommand(command_t* command) {
+void finishExecutingCommand()
+{
+  runningCommand = false;
+  if(queue.isEmpty())
+  {
+    leftMotor.stop();
+    rightMotor.stop();
+  }
+}
+
+void executeCommand(command_t* command)
+{
   runningCommand = true;
-  switch(command->code) {
+  switch(command->code)
+  {
     case CMD_FORWARD:
       leftMotor.run(FORWARD, command->speed);
       rightMotor.run(FORWARD, command->speed);
@@ -80,11 +96,12 @@ void executeCommand(command_t* command) {
       leftMotor.run(FORWARD, command->speed);
       rightMotor.run(REVERSE, command->speed);
       break;
+    case CMD_STOP:
+      leftMotor.stop();
+      rightMotor.stop();
+      break;
   }
-}
-
-void finishExecutingCommand() {
-  runningCommand = false;
+  commandTimer.after(command->duration, finishExecutingCommand);
 }
 
 void setup()
@@ -95,7 +112,11 @@ void setup()
 
 void loop()
 {
+  commandTimer.update();
+
   if(running && !queue.isEmpty() && !runningCommand)
+  {
     command = queue.pop();
     executeCommand(&command);
+  }
 }

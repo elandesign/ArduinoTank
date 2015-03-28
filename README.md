@@ -23,6 +23,7 @@ This sketch requires the following software and libraries to be installed:
 * Arduino (tested with v1.6.1 OSX)
 * QueueList (http://playground.arduino.cc/Code/QueueList)
 * WeeESP8266 (https://github.com/itead/ITEADLIB_Arduino_WeeESP8266), modified to use `SoftwareSerial`
+* Timer (https://github.com/JChristensen/Timer)
 * picoterm for make monitor task (installed via homebrew)
 
 ## Getting Started
