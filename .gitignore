@@ -1,2 +1,6 @@
 .DS_Store
 wifi.h
+.dep
+.lib
+*.hex
+*.o

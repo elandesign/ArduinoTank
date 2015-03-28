@@ -34,13 +34,6 @@ bool run = false;
 bool executingCommand = false;
 command_t currentCommand;
 
-void setup()
-{
-  debug.begin(57600);
-
-  setupWifi();
-}
-
 void setupWifi() {
   debug.print("Connecting to WIFI... ");
   if(wifi.setOprToStation() && wifi.joinAP(WIFI_SSID, WIFI_PASSWORD))
@@ -53,13 +46,6 @@ void setupWifi() {
     debug.println("Success");
   else
     debug.println("Failed");
-}
-
-void loop()
-{
-  if(run && !queue.isEmpty() && !executingCommand)
-    currentCommand = queue.pop();
-    executeCommand(&currentCommand);
 }
 
 void executeCommand(command_t* command) {
@@ -78,4 +64,18 @@ void executeCommand(command_t* command) {
 
 void finishExecutingCommand() {
   executingCommand = false;
+}
+
+void setup()
+{
+  debug.begin(57600);
+
+  setupWifi();
+}
+
+void loop()
+{
+  if(run && !queue.isEmpty() && !executingCommand)
+    currentCommand = queue.pop();
+    executeCommand(&currentCommand);
 }
