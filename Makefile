@@ -191,7 +191,7 @@ endif
 ifndef BOARD
 ifneq "$(MAKECMDGOALS)" "boards"
 ifneq "$(MAKECMDGOALS)" "clean"
-$(error BOARD is unset.  Type 'make boards' to see possible values)
+BOARD:= uno
 endif
 endif
 endif
