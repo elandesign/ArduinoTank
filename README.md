@@ -28,4 +28,4 @@ This sketch requires the following software and libraries to be installed:
 
 ## Getting Started
 
-Copy the `wifi.h.default` file to `wifi.h`, add your connection parameters, build, and hope for the best.
+Copy the `wifi_settings.h.default` file to `wifi_settings.h`, add your connection parameters, build, and hope for the best.
