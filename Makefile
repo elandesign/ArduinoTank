@@ -363,7 +363,7 @@ monitor:
 	@test 0 -eq $(SERIALDEVGUESS) || { \
 		echo "*GUESSING* at serial device:" $(SERIALDEV); \
 		echo; }
-	screen $(SERIALDEV) 57600
+	picocom -b 57600 $(SERIALDEV)
 
 size: $(TARGET).elf
 	echo && $(AVRSIZE) --format=avr --mcu=$(BOARD_BUILD_MCU) $(TARGET).elf
