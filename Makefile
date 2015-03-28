@@ -326,9 +326,6 @@ all: target
 
 target: $(TARGET).hex
 
-info:
-	$(LIBRARYDIRS)
-
 upload: target
 	@echo "\nUploading to board..."
 	@test -n "$(SERIALDEV)" || { \
@@ -366,7 +363,7 @@ monitor:
 	@test 0 -eq $(SERIALDEVGUESS) || { \
 		echo "*GUESSING* at serial device:" $(SERIALDEV); \
 		echo; }
-	screen $(SERIALDEV)
+	screen $(SERIALDEV) 57600
 
 size: $(TARGET).elf
 	echo && $(AVRSIZE) --format=avr --mcu=$(BOARD_BUILD_MCU) $(TARGET).elf
