@@ -1,0 +1,9 @@
+#include <WString.h>
+
+#ifndef WIFI
+#define WIFI
+
+const String WIFI_SSID = "ssid";
+const String WIFI_PASSWORD = "password";
+
+#endif
