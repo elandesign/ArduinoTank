@@ -163,6 +163,7 @@
 ifndef ARDUINODIR
 ARDUINODIR := $(firstword $(wildcard ~/opt/arduino /usr/share/arduino \
 	/Applications/Arduino.app/Contents/Resources/Java \
+	/Applications/Arduino.app/Contents/Java \
 	$(HOME)/Applications/Arduino.app/Contents/Resources/Java))
 endif
 ifeq "$(wildcard $(ARDUINODIR)/hardware/arduino/avr/boards.txt)" ""
@@ -175,6 +176,8 @@ ARDUINOCONST ?= 100
 # default path for avr tools
 AVRTOOLSPATH ?= $(subst :, , $(PATH)) $(ARDUINODIR)/hardware/tools \
 	$(ARDUINODIR)/hardware/tools/avr/bin
+
+SKETCHBOOKDIR := ~/Documents/Arduino
 
 # default path to find libraries
 LIBRARYPATH ?= libraries libs $(SKETCHBOOKDIR)/libraries $(ARDUINODIR)/libraries $(ARDUINODIR)/hardware/arduino/avr/libraries
