@@ -2,10 +2,10 @@
 #include <QueueList.h>
 #include <ESP8266.h>
 #include <Timer.h>
+#include <Motor.h>
 
 #include "types.h"
 #include "wifi_settings.h"
-#include "motor.h"
 
 // Pins
 #define WIFI_RX 3
@@ -44,8 +44,9 @@ Motor rightMotor(R_MOTOR_SPEED, R_MOTOR_DIRECTION);
 
 bool running = false;
 bool runningCommand = false;
-command_t command;
+command_t currentCommand;
 Timer commandTimer;
+String buffer = "";
 
 void setupWifi()
 {
@@ -81,27 +82,66 @@ void executeCommand(command_t* command)
   switch(command->code)
   {
     case CMD_FORWARD:
+      debug.print("Forward for ");
       leftMotor.run(FORWARD, command->speed);
       rightMotor.run(FORWARD, command->speed);
       break;
     case CMD_REVERSE:
+      debug.print("Reverse for ");
       leftMotor.run(REVERSE, command->speed);
       rightMotor.run(REVERSE, command->speed);
       break;
     case CMD_TURN_L:
+      debug.print("Left for ");
       leftMotor.run(REVERSE, command->speed);
       rightMotor.run(FORWARD, command->speed);
       break;
     case CMD_TURN_R:
+      debug.print("Right for ");
       leftMotor.run(FORWARD, command->speed);
       rightMotor.run(REVERSE, command->speed);
       break;
     case CMD_STOP:
+      debug.print("Stop for ");
       leftMotor.stop();
       rightMotor.stop();
       break;
   }
+
+  debug.println(command->duration + " seconds at " + command->speed);
   commandTimer.after(command->duration, finishExecutingCommand);
+}
+
+void parseCommand() {
+  if(buffer.length() < 1)
+    return;
+
+  uint8_t code, duration, speed;
+  code = buffer.charAt(0);
+  duration = buffer.length() > 1 ? buffer.charAt(1) : 1;
+  speed = buffer.length() > 2 ? buffer.charAt(2) : 255;
+
+  command_t newCommand =
+  {
+    (uint8_t)constrain(code, CMD_FORWARD, CMD_STOP),
+    (uint8_t)constrain(duration, 0, 10),
+    (uint8_t)constrain(speed, 0, 255)
+  };
+
+  queue.push(newCommand);
+
+  buffer = "";
+}
+
+void readCommand()
+{
+  while(Serial.available() > 0)
+  {
+    char c = Serial.read();
+    buffer += c;
+    if((int)c == 13)
+      parseCommand();
+  }
 }
 
 void setup()
@@ -114,9 +154,12 @@ void loop()
 {
   commandTimer.update();
 
+  readCommand();
+
   if(running && !queue.isEmpty() && !runningCommand)
   {
-    command = queue.pop();
-    executeCommand(&command);
+    currentCommand = queue.pop();
+    executeCommand(&currentCommand);
   }
+
 }
