@@ -2,6 +2,8 @@
 
 A simple sketch to allow the control of a tank over wifi. The hardware is yet to be assembled (en-route from Japan & China) so this may not work at all...
 
+![schematic](https://raw.githubusercontent.com/elandesign/Tank/master/doc/schematic.png)
+
 ## Hardware
 
 The build will consist of
@@ -10,7 +12,6 @@ The build will consist of
   * Arduino Uno
   * L9110S Dual Motor Driver Module
   * ESP8266 Wifi <-> Serial Transceiver Module
-  * OV7670 Camera Module
 * Mechanics
   * Tamiya Universal Plate TAM70098
   * Tamiya Track and Wheel Set TAM70100
@@ -18,7 +19,7 @@ The build will consist of
 
 ## Requirements
 
-This sketch requires the following software and libraries to be installed:
+This sketch requires the following software and libraries:
 
 * Arduino (tested with v1.6.1 OSX)
 * QueueList (http://playground.arduino.cc/Code/QueueList)
