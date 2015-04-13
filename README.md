@@ -1,17 +1,17 @@
 ## Arduino Tank
 
-A simple sketch to allow the control of a tank over wifi. The hardware is yet to be assembled (en-route from Japan & China) so this may not work at all...
+A simple sketch to allow the control of a tank over Bluetooth LE.
 
-![schematic](https://raw.githubusercontent.com/elandesign/Tank/master/doc/schematic.png)
+![schematic](https://raw.githubusercontent.com/elandesign/Tank/bluetooth-control/doc/schematic.png)
 
 ## Hardware
 
-The build will consist of
+The build consists of
 
 * Electronics
   * Arduino Uno
   * L9110S Dual Motor Driver Module
-  * ESP8266 Wifi <-> Serial Transceiver Module
+  * Adafruit nrf8001 BLE Breakout Board
 * Mechanics
   * Tamiya Universal Plate TAM70098
   * Tamiya Track and Wheel Set TAM70100
@@ -22,11 +22,21 @@ The build will consist of
 This sketch requires the following software and libraries:
 
 * Arduino (tested with v1.6.1 OSX)
-* QueueList (http://playground.arduino.cc/Code/QueueList)
-* WeeESP8266 (https://github.com/itead/ITEADLIB_Arduino_WeeESP8266), modified to use `SoftwareSerial`
+* Adafruit nrf8001 (https://github.com/adafruit/Adafruit_nRF8001)
 * Timer (https://github.com/JChristensen/Timer)
 * picoterm for make monitor task (installed via homebrew)
 
-## Getting Started
+# Notes
 
-Copy the `wifi_settings.h.default` file to `wifi_settings.h`, add your connection parameters, build, and hope for the best.
+Commands can be sent to the tank using [Blue Remote Free](https://itunes.apple.com/us/app/blue-remote-free/id851124912?mt=8)
+
+2 = Forwards  
+8 = Backwards  
+4 = Left  
+6 = Right  
+
+(because I couldn't be bothered with multi-byte commands at this stage)
+
+Each command will run for 1 second, then the tank will stop.
+
+The 47µF capacitor was added to stop the Arduino restarting every time the motor started

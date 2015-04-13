@@ -30,6 +30,8 @@ Motor::Motor(uint8_t speedPin, uint8_t directionPin)
 {
   _speedPin = speedPin;
   _directionPin = directionPin;
+  pinMode(_speedPin, OUTPUT);
+  pinMode(_directionPin, OUTPUT);
 }
 
 void Motor::run(uint8_t direction, uint8_t speed)
@@ -44,5 +46,5 @@ void Motor::run(uint8_t direction, uint8_t speed)
 void Motor::stop()
 {
   digitalWrite(_directionPin, LOW);
-  analogWrite(_speedPin, LOW);
+  analogWrite(_speedPin, 0);
 }

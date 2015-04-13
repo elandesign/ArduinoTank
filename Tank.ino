@@ -1,165 +1,105 @@
-#include <SoftwareSerial.h>
-#include <QueueList.h>
-#include <ESP8266.h>
-#include <Timer.h>
 #include <Motor.h>
+#include <SPI.h>
+#include <Adafruit_BLE_UART.h>
+#include <Timer.h>
 
-#include "types.h"
-#include "wifi_settings.h"
+#define ADAFRUITBLE_REQ 10
+#define ADAFRUITBLE_RDY 2
+#define ADAFRUITBLE_RST 9
 
 // Pins
-#define WIFI_RX 3
-#define WIFI_TX 2
-#define L_MOTOR_SPEED 9 // PWM
-#define L_MOTOR_DIRECTION 8
-#define R_MOTOR_SPEED 11 // PWM
-#define R_MOTOR_DIRECTION 10
+#define L_MOTOR_SPEED 5 // PWM
+#define L_MOTOR_DIRECTION 4
+#define R_MOTOR_SPEED 6 // PWM
+#define R_MOTOR_DIRECTION 7
 
-// Communication
-#define WIFI_BAUD 57600
-#define SERVER_PORT 333
-#define SERVER_TIMEOUT 5
+#define RUNTIME 1000
+
+#define FORWARD 1
+#define REVERSE 0
 
 // Debugging
 #define debug Serial
 
 // Commands
-#define CMD_FORWARD 1
-#define CMD_REVERSE 2
-#define CMD_TURN_R 3
-#define CMD_TURN_L 4
-#define CMD_STOP 5
-#define CMD_RUN 6
-#define CMD_CLEAR 7
-#define CMD_LIST 8
+#define CMD_FORWARD 0x32
+#define CMD_REVERSE 0x38
+#define CMD_TURN_R 0x36
+#define CMD_TURN_L 0x34
 
-#define FORWARD HIGH
-#define REVERSE LOW
-
-SoftwareSerial wifiSerial(WIFI_RX, WIFI_TX);
-ESP8266 wifi(wifiSerial, WIFI_BAUD);
-QueueList <command_t>queue;
+Adafruit_BLE_UART uart = Adafruit_BLE_UART(ADAFRUITBLE_REQ, ADAFRUITBLE_RDY, ADAFRUITBLE_RST);
 Motor leftMotor(L_MOTOR_SPEED, L_MOTOR_DIRECTION);
 Motor rightMotor(R_MOTOR_SPEED, R_MOTOR_DIRECTION);
 
 bool running = false;
-bool runningCommand = false;
-command_t currentCommand;
 Timer commandTimer;
-String buffer = "";
-
-void setupWifi()
-{
-  debug.print("Connecting to WIFI... ");
-  if(wifi.setOprToStation() && wifi.joinAP(WIFI_SSID, WIFI_PASSWORD))
-    debug.println("Connected");
-  else
-  {
-    debug.println("Failed");
-    return;
-  }
-
-  debug.print("Initialising server on " + wifi.getLocalIP() + ":" + SERVER_PORT + "... ");
-  if(wifi.enableMUX() && wifi.startTCPServer(SERVER_PORT) && wifi.setTCPServerTimeout(SERVER_TIMEOUT))
-    debug.println("Success");
-  else
-    debug.println("Failed");
-}
 
 void finishExecutingCommand()
 {
-  runningCommand = false;
-  if(queue.isEmpty())
-  {
-    leftMotor.stop();
-    rightMotor.stop();
-  }
+  leftMotor.stop();
+  rightMotor.stop();
+  running = false;
 }
 
-void executeCommand(command_t* command)
+void executeCommand(uint8_t command)
 {
-  runningCommand = true;
-  switch(command->code)
+  running = true;
+  switch(command)
   {
     case CMD_FORWARD:
-      debug.print("Forward for ");
-      leftMotor.run(FORWARD, command->speed);
-      rightMotor.run(FORWARD, command->speed);
+      leftMotor.run(FORWARD, 255);
+      rightMotor.run(FORWARD, 255);
       break;
     case CMD_REVERSE:
-      debug.print("Reverse for ");
-      leftMotor.run(REVERSE, command->speed);
-      rightMotor.run(REVERSE, command->speed);
+      leftMotor.run(REVERSE, 255);
+      rightMotor.run(REVERSE, 255);
       break;
     case CMD_TURN_L:
-      debug.print("Left for ");
-      leftMotor.run(REVERSE, command->speed);
-      rightMotor.run(FORWARD, command->speed);
+      leftMotor.run(REVERSE, 255);
+      rightMotor.run(FORWARD, 255);
       break;
     case CMD_TURN_R:
-      debug.print("Right for ");
-      leftMotor.run(FORWARD, command->speed);
-      rightMotor.run(REVERSE, command->speed);
+      leftMotor.run(FORWARD, 255);
+      rightMotor.run(REVERSE, 255);
       break;
-    case CMD_STOP:
-      debug.print("Stop for ");
+  }
+
+  commandTimer.after(RUNTIME, finishExecutingCommand);
+}
+
+void aciCallback(aci_evt_opcode_t event)
+{
+  switch(event)
+  {
+    case ACI_EVT_DEVICE_STARTED:
+      break;
+    case ACI_EVT_CONNECTED:
+      break;
+    case ACI_EVT_DISCONNECTED:
       leftMotor.stop();
       rightMotor.stop();
       break;
+    default:
+      break;
   }
-
-  debug.println(command->duration + " seconds at " + command->speed);
-  commandTimer.after(command->duration, finishExecutingCommand);
 }
 
-void parseCommand() {
-  if(buffer.length() < 1)
-    return;
-
-  uint8_t code, duration, speed;
-  code = buffer.charAt(0);
-  duration = buffer.length() > 1 ? buffer.charAt(1) : 1;
-  speed = buffer.length() > 2 ? buffer.charAt(2) : 255;
-
-  command_t newCommand =
-  {
-    (uint8_t)constrain(code, CMD_FORWARD, CMD_STOP),
-    (uint8_t)constrain(duration, 0, 10),
-    (uint8_t)constrain(speed, 0, 255)
-  };
-
-  queue.push(newCommand);
-
-  buffer = "";
-}
-
-void readCommand()
+void rxCallback(uint8_t *buffer, uint8_t len)
 {
-  while(Serial.available() > 0)
-  {
-    char c = Serial.read();
-    buffer += c;
-    if((int)c == 13)
-      parseCommand();
-  }
+  if(!running)
+    executeCommand(buffer[0]);
 }
 
 void setup()
 {
-  debug.begin(57600);
-  setupWifi();
+  uart.setRXcallback(rxCallback);
+  uart.setACIcallback(aciCallback);
+  uart.setDeviceName("Tank"); /* 7 characters max! */
+  uart.begin();
 }
 
 void loop()
 {
   commandTimer.update();
-
-  readCommand();
-
-  if(running && !queue.isEmpty() && !runningCommand)
-  {
-    currentCommand = queue.pop();
-    executeCommand(&currentCommand);
-  }
-
+  uart.pollACI();
 }
