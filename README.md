@@ -30,13 +30,16 @@ This sketch requires the following software and libraries:
 
 Commands can be sent to the tank using [Blue Remote Free](https://itunes.apple.com/us/app/blue-remote-free/id851124912?mt=8)
 
-2 = Forwards  
-8 = Backwards  
-4 = Left  
-6 = Right  
+2 = Forwards
+8 = Backwards
+4 = Left
+6 = Right
 
 (because I couldn't be bothered with multi-byte commands at this stage)
 
 Each command will run for 1 second, then the tank will stop.
 
 The 47µF capacitor was added to stop the Arduino restarting every time the motor started
+
+
+![prototype](https://raw.githubusercontent.com/elandesign/Tank/bluetooth-control/doc/tank.jpg)
