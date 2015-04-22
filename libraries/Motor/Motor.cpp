@@ -28,6 +28,8 @@ SOFTWARE.
 
 Motor::Motor(uint8_t speedPin, uint8_t directionPin)
 {
+  pinMode(speedPin, OUTPUT);
+  pinMode(directionPin, OUTPUT);
   _speedPin = speedPin;
   _directionPin = directionPin;
 }
