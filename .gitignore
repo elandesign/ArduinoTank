@@ -1,6 +1,3 @@
 .DS_Store
 wifi_settings.h
-.dep
-.lib
-*.hex
-*.o
+build-*
